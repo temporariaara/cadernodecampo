@@ -48,12 +48,23 @@ h2{font-size:17px;margin:24px 0 6px;padding-top:12px;border-top:2px solid var(--
 @media(max-width:520px){.sum{grid-template-columns:1fr}}
 @media print{body{background:#fff;color:#000}nav,form,.noprint,#msg,.btn{display:none!important}section[hidden]{display:block!important}.it{break-inside:avoid}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.who{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;color:var(--mut);font-size:14px}
+#auth h2{border:0;margin-top:0;padding-top:0}
+#amsg{min-height:1.4em;margin-top:8px;color:var(--bad)}
+#auth .btn+.btn{margin-left:8px}
 </style>
 </head>
 <body>
 <main>
 <h1>Caderno de Campo</h1>
 <p class="sub">Custos da safra, gado, chuva e aplicações no mesmo lugar, com histórico organizado para mostrar ao banco ou ao técnico.</p>
+<section id="auth"><h2>Entrar ou criar conta</h2>
+<form id="fauth"><label for="em">E-mail</label><input id="em" type="email" autocomplete="email" required>
+<label for="pw">Senha (mínimo 6 caracteres)</label><input id="pw" type="password" autocomplete="current-password" minlength="6" required>
+<div id="amsg" role="alert"></div>
+<button class="btn main" type="submit">Entrar</button><button class="btn" id="signup" type="button">Criar conta</button></form></section>
+<div id="app" hidden>
+<div class="who noprint"><span id="who"></span><button class="btn sm" id="out" type="button">Sair</button></div>
 <nav role="tablist" aria-label="Seções">
 <button role="tab" data-t="custos" aria-selected="true">Custos</button>
 <button role="tab" data-t="gado" aria-selected="false">Gado</button>
@@ -107,14 +118,14 @@ h2{font-size:17px;margin:24px 0 6px;padding-top:12px;border-top:2px solid var(--
 <button class="btn main" type="submit">Salvar aplicação</button></form>
 <h2>Registros</h2><div id="la"></div>
 </section>
+</div>
 </main>
 <div id="msg" role="status" aria-live="polite"></div>
 <script>
 (function(){
-var K="cadernocampo:v1",$=function(s){return document.querySelector(s)},today=new Date().toISOString().slice(0,10);
+var $=function(s){return document.querySelector(s)},today=new Date().toISOString().slice(0,10);
+var API="https://rlznegdadizdezkcvcvf.supabase.co",KEY="sb_publishable_HMFQNV7EbcCqb_gGZKmLeQ_TrcCMWqg",TK="cadernocampo:sessao",tok=null,busy=false;
 var S={sf:null,safras:[],custos:[],animais:[],an:null,chuva:[],aplic:[]};
-function load(){try{var r=localStorage.getItem(K);if(r){var x=JSON.parse(r);if(x&&x.safras)S=x}}catch(e){}}
-function store(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function brl(n){return(+n||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
 function fd(d){if(!d)return"";var p=d.split("-");return p[2]+"/"+p[1]+"/"+p[0]}
@@ -144,31 +155,77 @@ $("#cs").innerHTML='<div><small>Neste mês</small><b>'+num(tm)+' mm</b></div><di
 $("#lr").innerHTML=L.map(function(x){return'<div class="it"><div><b>'+num(x.mm)+' mm</b><small>'+fd(x.d)+'</small></div>'+del(x.id,"chuva")+'</div>'}).join("")||'<p class="empty">Nenhuma chuva registrada.</p>'}
 function rAplic(){$("#la").innerHTML=S.aplic.slice().sort(byDate).map(function(x){return'<div class="it"><div><b>'+esc(x.p)+'</b>'+(x.o?" · "+esc(x.o):"")+'<small>'+fd(x.d)+(x.l?" · "+esc(x.l):"")+(x.x?" · "+esc(x.x):"")+'</small></div>'+del(x.id,"aplic")+'</div>'}).join("")||'<p class="empty">Nenhuma aplicação registrada.</p>'}
 function all(){rCustos();rGado();rChuva();rAplic()}
-function id(){return Date.now()+Math.random().toString(36).slice(2,6)}
-load();["cd","pd","vd","rd","ad"].forEach(function(k){$("#"+k).value=today});all();
+function msg(e){var m=String(e&&e.message||"");
+if(/Invalid login/i.test(m))return"E-mail ou senha incorretos.";
+if(/not confirmed/i.test(m))return"Confirme seu e-mail pelo link que enviamos antes de entrar.";
+if(/already/i.test(m))return"Este e-mail já tem cadastro. Use Entrar.";
+if(/at least/i.test(m))return"A senha precisa ter pelo menos 6 caracteres.";
+if(/rate limit|too many/i.test(m))return"Muitas tentativas. Espere um pouco e tente de novo.";
+return"Não foi possível concluir. Verifique a conexão e tente de novo."}
+function amsg(t){$("#amsg").textContent=t}
+function saveTok(){try{localStorage.setItem(TK,JSON.stringify(tok))}catch(e){}}
+async function authCall(path,body){var r=await fetch(API+"/auth/v1/"+path,{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify(body)});
+var d=await r.json().catch(function(){return{}});if(!r.ok)throw new Error(d.error_description||d.msg||d.message||"erro");return d}
+function setSession(d,email){tok={access_token:d.access_token,refresh_token:d.refresh_token,exp:Math.floor(Date.now()/1000)+(d.expires_in||3600),email:(d.user&&d.user.email)||email||(tok&&tok.email)||""};saveTok()}
+async function ensure(){if(!tok)throw new Error("sessao");if(tok.exp-60<Date.now()/1000){var d=await authCall("token?grant_type=refresh_token",{refresh_token:tok.refresh_token});setSession(d)}}
+async function api(m,p,b){await ensure();
+var r=await fetch(API+"/rest/v1/"+p,{method:m,headers:{apikey:KEY,Authorization:"Bearer "+tok.access_token,"Content-Type":"application/json",Prefer:"return=representation"},body:b?JSON.stringify(b):undefined});
+if(r.status===401)throw new Error("sessao");if(!r.ok)throw new Error("api");return r.json()}
+function sair(){if(tok){try{fetch(API+"/auth/v1/logout",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+tok.access_token}})}catch(e){}}
+tok=null;try{localStorage.removeItem(TK)}catch(e){}
+S={sf:null,safras:[],custos:[],animais:[],an:null,chuva:[],aplic:[]};$("#app").hidden=true;$("#auth").hidden=false;$("#pw").value=""}
+function fail(e){if(e&&e.message==="sessao"){sair();amsg("Sua sessão expirou. Entre de novo.")}else toast("Não foi possível salvar. Verifique a conexão.")}
+function run(fn,h){if(busy)return;busy=true;fn().catch(h||fail).then(function(){busy=false})}
+async function carregar(){var n=["safras","custos","animais","pesagens","vacinas","chuvas","aplicacoes"],R=await Promise.all(n.map(function(t){return api("GET",t+"?select=*")}));
+S.safras=R[0].sort(function(a,b){return a.criado_em<b.criado_em?-1:1}).map(function(x){return{id:x.id,nome:x.nome}});
+S.custos=R[1].map(function(x){return{id:x.id,sf:x.safra_id,t:x.tipo,d:x.data,cat:x.categoria,v:x.valor,x:x.descricao}});
+S.animais=R[2].sort(function(a,b){return String(a.nome).localeCompare(String(b.nome),"pt-BR")}).map(function(a){return{id:a.id,nome:a.nome,
+pes:R[3].filter(function(p){return p.animal_id===a.id}).map(function(p){return{id:p.id,d:p.data,kg:p.kg}}),
+vac:R[4].filter(function(v){return v.animal_id===a.id}).map(function(v){return{id:v.id,d:v.data,p:v.produto,px:v.proxima||""}})}});
+S.chuva=R[5].map(function(x){return{id:x.id,d:x.data,mm:x.mm}});
+S.aplic=R[6].map(function(x){return{id:x.id,d:x.data,p:x.produto,l:x.local,o:x.dose,x:x.obs}});
+if(!S.safras.some(function(s){return s.id===S.sf}))S.sf=S.safras.length?S.safras[0].id:null;
+if(!S.animais.some(function(a){return a.id===S.an}))S.an=S.animais.length?S.animais[0].id:null}
+async function entrar(){await carregar();$("#auth").hidden=true;$("#app").hidden=false;$("#who").textContent=tok.email||"";all()}
+["cd","pd","vd","rd","ad"].forEach(function(k){$("#"+k).value=today});
+$("#fauth").addEventListener("submit",function(e){e.preventDefault();var em=$("#em").value.trim();amsg("");
+run(async function(){var d=await authCall("token?grant_type=password",{email:em,password:$("#pw").value});setSession(d,em);await entrar()},function(x){amsg(msg(x))})});
+$("#signup").addEventListener("click",function(){var em=$("#em").value.trim();amsg("");if(!em||!$("#pw").value){amsg("Preencha e-mail e senha.");return}
+run(async function(){var d=await authCall("signup",{email:em,password:$("#pw").value});
+if(d.access_token){setSession(d,em);await entrar()}else amsg("Cadastro feito. Enviamos um link de confirmação para o seu e-mail. Confirme e depois toque em Entrar.")},function(x){amsg(msg(x))})});
+$("#out").addEventListener("click",sair);
 document.querySelectorAll("nav button").forEach(function(b){b.addEventListener("click",function(){document.querySelectorAll("nav button").forEach(function(o){o.setAttribute("aria-selected",o===b)});["custos","gado","chuva","aplic"].forEach(function(t){$("#p-"+t).hidden=t!==b.dataset.t})})});
-$("#addsf").addEventListener("click",function(){var n=$("#nsf").value.trim();if(!n){toast("Digite o nome da safra.");return}var s={id:id(),nome:n};S.safras.push(s);S.sf=s.id;$("#nsf").value="";store();all()});
-$("#sf").addEventListener("change",function(e){S.sf=e.target.value;store();rCustos()});
-$("#addan").addEventListener("click",function(){var n=$("#nan").value.trim();if(!n){toast("Digite o brinco ou nome.");return}var a={id:id(),nome:n,pes:[],vac:[]};S.animais.push(a);S.an=a.id;$("#nan").value="";store();rGado()});
-$("#an").addEventListener("change",function(e){S.an=e.target.value;store();rGado()});
+$("#addsf").addEventListener("click",function(){var n=$("#nsf").value.trim();if(!n){toast("Digite o nome da safra.");return}
+run(async function(){var r=(await api("POST","safras",{nome:n}))[0];S.safras.push({id:r.id,nome:r.nome});S.sf=r.id;$("#nsf").value="";all()})});
+$("#sf").addEventListener("change",function(e){S.sf=e.target.value;rCustos()});
+$("#addan").addEventListener("click",function(){var n=$("#nan").value.trim();if(!n){toast("Digite o brinco ou nome.");return}
+run(async function(){var r=(await api("POST","animais",{nome:n}))[0];S.animais.push({id:r.id,nome:r.nome,pes:[],vac:[]});S.an=r.id;$("#nan").value="";rGado()})});
+$("#an").addEventListener("change",function(e){S.an=e.target.value;rGado()});
 $("#fc").addEventListener("submit",function(e){e.preventDefault();if(!S.sf){toast("Crie uma safra primeiro.");return}if(!+$("#cv").value){toast("Informe o valor.");return}
-S.custos.push({id:id(),sf:S.sf,t:$("#ct").value,d:$("#cd").value,cat:$("#cc").value,v:$("#cv").value,x:$("#cx").value.trim()});$("#cv").value="";$("#cx").value="";store();rCustos();toast("Lançamento salvo.")});
+run(async function(){var r=(await api("POST","custos",{safra_id:S.sf,tipo:$("#ct").value,data:$("#cd").value,categoria:$("#cc").value,descricao:$("#cx").value.trim(),valor:+$("#cv").value}))[0];
+S.custos.push({id:r.id,sf:r.safra_id,t:r.tipo,d:r.data,cat:r.categoria,v:r.valor,x:r.descricao});$("#cv").value="";$("#cx").value="";rCustos();toast("Lançamento salvo.")})});
 $("#fp").addEventListener("submit",function(e){e.preventDefault();var a=cur();if(!a){toast("Cadastre um animal primeiro.");return}if(!+$("#pk").value){toast("Informe o peso.");return}
-a.pes.push({id:id(),d:$("#pd").value,kg:$("#pk").value});$("#pk").value="";store();rGado();toast("Pesagem salva.")});
+run(async function(){var r=(await api("POST","pesagens",{animal_id:a.id,data:$("#pd").value,kg:+$("#pk").value}))[0];a.pes.push({id:r.id,d:r.data,kg:r.kg});$("#pk").value="";rGado();toast("Pesagem salva.")})});
 $("#fv").addEventListener("submit",function(e){e.preventDefault();var a=cur();if(!a){toast("Cadastre um animal primeiro.");return}
-a.vac.push({id:id(),d:$("#vd").value,p:$("#vp").value.trim(),px:$("#vx").value});$("#vp").value="";$("#vx").value="";store();rGado();toast("Vacina salva.")});
+run(async function(){var r=(await api("POST","vacinas",{animal_id:a.id,data:$("#vd").value,produto:$("#vp").value.trim(),proxima:$("#vx").value||null}))[0];
+a.vac.push({id:r.id,d:r.data,p:r.produto,px:r.proxima||""});$("#vp").value="";$("#vx").value="";rGado();toast("Vacina salva.")})});
 $("#fr").addEventListener("submit",function(e){e.preventDefault();if($("#rm").value===""){toast("Informe os milímetros.");return}
-S.chuva.push({id:id(),d:$("#rd").value,mm:$("#rm").value});$("#rm").value="";store();rChuva();toast("Chuva salva.")});
+run(async function(){var r=(await api("POST","chuvas",{data:$("#rd").value,mm:+$("#rm").value}))[0];S.chuva.push({id:r.id,d:r.data,mm:r.mm});$("#rm").value="";rChuva();toast("Chuva salva.")})});
 $("#fa").addEventListener("submit",function(e){e.preventDefault();if(!$("#ap").value.trim()){toast("Informe o produto.");return}
-S.aplic.push({id:id(),d:$("#ad").value,p:$("#ap").value.trim(),l:$("#al").value.trim(),o:$("#ao").value.trim(),x:$("#ax").value.trim()});["ap","al","ao","ax"].forEach(function(k){$("#"+k).value=""});store();rAplic();toast("Aplicação salva.")});
+run(async function(){var r=(await api("POST","aplicacoes",{data:$("#ad").value,produto:$("#ap").value.trim(),local:$("#al").value.trim(),dose:$("#ao").value.trim(),obs:$("#ax").value.trim()}))[0];
+S.aplic.push({id:r.id,d:r.data,p:r.produto,l:r.local,o:r.dose,x:r.obs});["ap","al","ao","ax"].forEach(function(k){$("#"+k).value=""});rAplic();toast("Aplicação salva.")})});
 $("#pr").addEventListener("click",function(){try{window.print()}catch(e){toast("Use o menu do navegador para imprimir.")}});
-document.addEventListener("click",function(e){var g=e.target;if(!g.dataset.del||!confirm("Excluir este registro?"))return;var k=g.dataset.del,i=g.dataset.id,a=cur();
+document.addEventListener("click",function(e){var g=e.target;if(!g.dataset.del||!confirm("Excluir este registro?"))return;
+var k=g.dataset.del,i=g.dataset.id,a=cur(),T={custos:"custos",chuva:"chuvas",aplic:"aplicacoes",pes:"pesagens",vac:"vacinas"};
+run(async function(){await api("DELETE",T[k]+"?id=eq."+encodeURIComponent(i));
 if(k==="custos")S.custos=S.custos.filter(function(x){return x.id!==i});
 else if(k==="chuva")S.chuva=S.chuva.filter(function(x){return x.id!==i});
 else if(k==="aplic")S.aplic=S.aplic.filter(function(x){return x.id!==i});
 else if(a&&k==="pes")a.pes=a.pes.filter(function(x){return x.id!==i});
 else if(a&&k==="vac")a.vac=a.vac.filter(function(x){return x.id!==i});
-store();all()});
+all()})});
+try{tok=JSON.parse(localStorage.getItem(TK))}catch(e){tok=null}
+if(tok&&tok.access_token)entrar().catch(function(){sair()});
 })();
 </script>
 </body>
