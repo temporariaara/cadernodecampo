@@ -50,7 +50,8 @@ h2{font-size:17px;margin:24px 0 6px;padding-top:12px;border-top:2px solid var(--
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 .who{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;color:var(--mut);font-size:14px}
 #auth h2{border:0;margin-top:0;padding-top:0}
-#amsg{min-height:1.4em;margin-top:8px;color:var(--bad)}
+#amsg,#rmsg{min-height:1.4em;margin-top:8px;color:var(--bad)}
+.link{background:none;border:0;padding:10px 0 0;color:var(--g);font:inherit;text-decoration:underline;cursor:pointer}
 #auth .btn+.btn{margin-left:8px}
 </style>
 </head>
@@ -62,7 +63,9 @@ h2{font-size:17px;margin:24px 0 6px;padding-top:12px;border-top:2px solid var(--
 <form id="fauth"><label for="em">E-mail</label><input id="em" type="email" autocomplete="email" required>
 <label for="pw">Senha (mínimo 6 caracteres)</label><input id="pw" type="password" autocomplete="current-password" minlength="6" required>
 <div id="amsg" role="alert"></div>
-<button class="btn main" type="submit">Entrar</button><button class="btn" id="signup" type="button">Criar conta</button></form></section>
+<button class="btn main" type="submit">Entrar</button><button class="btn" id="signup" type="button">Criar conta</button>
+<div><button class="link" id="forgot" type="button">Esqueci minha senha</button></div></form></section>
+<section id="rec" hidden><h2>Criar nova senha</h2><form id="frec"><label for="np">Nova senha (mínimo 6 caracteres)</label><input id="np" type="password" autocomplete="new-password" minlength="6" required><div id="rmsg" role="alert"></div><button class="btn main" type="submit">Salvar nova senha</button></form></section>
 <div id="app" hidden>
 <div class="who noprint"><span id="who"></span><button class="btn sm" id="out" type="button">Sair</button></div>
 <nav role="tablist" aria-label="Seções">
@@ -159,10 +162,11 @@ function msg(e){var m=String(e&&e.message||"");
 if(/Invalid login/i.test(m))return"E-mail ou senha incorretos.";
 if(/not confirmed/i.test(m))return"Confirme seu e-mail pelo link que enviamos antes de entrar.";
 if(/already/i.test(m))return"Este e-mail já tem cadastro. Use Entrar.";
+if(/different from/i.test(m))return"A nova senha precisa ser diferente da anterior.";
 if(/at least/i.test(m))return"A senha precisa ter pelo menos 6 caracteres.";
 if(/rate limit|too many/i.test(m))return"Muitas tentativas. Espere um pouco e tente de novo.";
-return"Não foi possível concluir. Verifique a conexão e tente de novo."}
-function amsg(t){$("#amsg").textContent=t}
+return"Não foi possível concluir. Detalhe: "+(m||"sem resposta")+". Verifique a conexão e tente de novo."}
+function amsg(t,ok){var m=$("#amsg");m.textContent=t;m.style.color=ok?"var(--g)":""}
 function saveTok(){try{localStorage.setItem(TK,JSON.stringify(tok))}catch(e){}}
 async function authCall(path,body){var r=await fetch(API+"/auth/v1/"+path,{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify(body)});
 var d=await r.json().catch(function(){return{}});if(!r.ok)throw new Error(d.error_description||d.msg||d.message||"erro");return d}
@@ -192,7 +196,7 @@ $("#fauth").addEventListener("submit",function(e){e.preventDefault();var em=$("#
 run(async function(){var d=await authCall("token?grant_type=password",{email:em,password:$("#pw").value});setSession(d,em);await entrar()},function(x){amsg(msg(x))})});
 $("#signup").addEventListener("click",function(){var em=$("#em").value.trim();amsg("");if(!em||!$("#pw").value){amsg("Preencha e-mail e senha.");return}
 run(async function(){var d=await authCall("signup",{email:em,password:$("#pw").value});
-if(d.access_token){setSession(d,em);await entrar()}else amsg("Cadastro feito. Enviamos um link de confirmação para o seu e-mail. Confirme e depois toque em Entrar.")},function(x){amsg(msg(x))})});
+if(d.access_token){setSession(d,em);await entrar()}else amsg("Cadastro feito. Enviamos um link de confirmação para o seu e-mail. Confirme e depois toque em Entrar.",true)},function(x){amsg(msg(x))})});
 $("#out").addEventListener("click",sair);
 document.querySelectorAll("nav button").forEach(function(b){b.addEventListener("click",function(){document.querySelectorAll("nav button").forEach(function(o){o.setAttribute("aria-selected",o===b)});["custos","gado","chuva","aplic"].forEach(function(t){$("#p-"+t).hidden=t!==b.dataset.t})})});
 $("#addsf").addEventListener("click",function(){var n=$("#nsf").value.trim();if(!n){toast("Digite o nome da safra.");return}
@@ -224,8 +228,21 @@ else if(k==="aplic")S.aplic=S.aplic.filter(function(x){return x.id!==i});
 else if(a&&k==="pes")a.pes=a.pes.filter(function(x){return x.id!==i});
 else if(a&&k==="vac")a.vac=a.vac.filter(function(x){return x.id!==i});
 all()})});
+var rec=null;
+function jwtEmail(t){try{return JSON.parse(atob(t.split(".")[1].replace(/-/g,"+").replace(/_/g,"/"))).email||""}catch(e){return""}}
+$("#forgot").addEventListener("click",function(){var em=$("#em").value.trim();amsg("");if(!em){amsg("Digite seu e-mail acima e toque em Esqueci minha senha.");return}
+run(async function(){await authCall("recover",{email:em});amsg("Se este e-mail tiver cadastro, enviamos um link para criar uma nova senha. Olhe também o spam.",true)},function(x){amsg(msg(x))})});
+$("#frec").addEventListener("submit",function(e){e.preventDefault();var pw=$("#np").value;$("#rmsg").textContent="";
+run(async function(){var r=await fetch(API+"/auth/v1/user",{method:"PUT",headers:{apikey:KEY,Authorization:"Bearer "+rec.access_token,"Content-Type":"application/json"},body:JSON.stringify({password:pw})});
+var d=await r.json().catch(function(){return{}});if(!r.ok)throw new Error(d.error_description||d.msg||d.message||"erro");
+setSession({access_token:rec.access_token,refresh_token:rec.refresh_token,expires_in:rec.expires_in},d.email||jwtEmail(rec.access_token));rec=null;$("#rec").hidden=true;await entrar()},function(x){$("#rmsg").textContent=msg(x)})});
+var hs=location.hash.replace(/^#/,""),hp=new URLSearchParams(hs);
+if(hs&&history.replaceState)history.replaceState(null,"",location.pathname+location.search);
+if(hp.get("error_description")){amsg("O link expirou ou já foi usado. Peça um novo em Esqueci minha senha.")}
+else if(hp.get("access_token")&&hp.get("type")==="recovery"){rec={access_token:hp.get("access_token"),refresh_token:hp.get("refresh_token"),expires_in:+hp.get("expires_in")||3600};$("#auth").hidden=true;$("#rec").hidden=false}
+else if(hp.get("access_token")&&hp.get("refresh_token")){setSession({access_token:hp.get("access_token"),refresh_token:hp.get("refresh_token"),expires_in:+hp.get("expires_in")||3600},jwtEmail(hp.get("access_token")))}
 try{tok=JSON.parse(localStorage.getItem(TK))}catch(e){tok=null}
-if(tok&&tok.access_token)entrar().catch(function(){sair()});
+if(!rec&&tok&&tok.access_token)entrar().catch(function(){sair()});
 })();
 </script>
 </body>
