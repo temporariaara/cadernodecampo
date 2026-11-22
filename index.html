@@ -12,6 +12,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%BE%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<script>try{var t0=localStorage.getItem("cadernocampo:tema");if(t0==="dark"||t0==="light")document.documentElement.setAttribute("data-theme",t0)}catch(e){}</script>
 <style>
 :root{--bg:#E6EEF1;--ink:#1D2B21;--mut:#516157;--line:#BCC9C3;--panel:#F7FAFA;--g:#4F7A22;--w:#A8650F;--bad:#B3261E;--on:#fff;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -21,6 +22,7 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.45 "Atkinson Hyperlegible",system-ui,sans-serif}
 main{max-width:720px;margin:0 auto;padding:22px 16px 80px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 h1{margin:0;font-size:clamp(30px,8vw,44px);line-height:1.05;font-weight:700;letter-spacing:-.02em}
 .sub{color:var(--mut);margin:6px 0 16px}
 nav{display:flex;gap:6px;overflow-x:auto;border-bottom:3px solid var(--ink);margin-bottom:16px}
@@ -33,6 +35,7 @@ input,select{font:inherit;color:var(--ink);background:var(--panel);border:1.5px 
 .btn{font:700 16px/1 inherit;font-family:inherit;border:2px solid var(--ink);background:transparent;color:var(--ink);padding:13px 16px;border-radius:8px;cursor:pointer;margin-top:12px}
 .btn.main{background:var(--g);border-color:var(--g);color:var(--on)}
 .btn.sm{padding:7px 10px;font-size:14px;margin:0;border-color:var(--line);color:var(--mut)}
+#tema{white-space:nowrap;flex-shrink:0;margin-top:6px}
 .sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
 .sum div{border-left:4px solid var(--g);padding:4px 10px}
 .sum small{display:block;color:var(--mut);font-size:13px}
@@ -57,7 +60,7 @@ h2{font-size:17px;margin:24px 0 6px;padding-top:12px;border-top:2px solid var(--
 </head>
 <body>
 <main>
-<h1>Caderno de Campo</h1>
+<div class="top"><h1>Caderno de Campo</h1><button class="btn sm noprint" id="tema" type="button" aria-pressed="false">🌙 Modo escuro</button></div>
 <p class="sub">Custos da safra, gado, chuva e aplicações no mesmo lugar, com histórico organizado para mostrar ao banco ou ao técnico.</p>
 <section id="auth"><h2>Entrar ou criar conta</h2>
 <form id="fauth"><label for="em">E-mail</label><input id="em" type="email" autocomplete="email" required>
@@ -129,6 +132,18 @@ h2{font-size:17px;margin:24px 0 6px;padding-top:12px;border-top:2px solid var(--
 var $=function(s){return document.querySelector(s)},today=new Date().toISOString().slice(0,10);
 var API="https://rlznegdadizdezkcvcvf.supabase.co",KEY="sb_publishable_HMFQNV7EbcCqb_gGZKmLeQ_TrcCMWqg",TK="cadernocampo:sessao",tok=null,busy=false;
 var S={sf:null,safras:[],custos:[],animais:[],an:null,chuva:[],aplic:[]};
+/* ---- Modo escuro ---- */
+var TH="cadernocampo:tema";
+function sysDark(){return !!(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)}
+function temaAtual(){var t=null;try{t=localStorage.getItem(TH)}catch(e){}return(t==="dark"||t==="light")?t:(sysDark()?"dark":"light")}
+function aplicaTema(t,salvar){
+document.documentElement.setAttribute("data-theme",t);
+var b=$("#tema");b.textContent=t==="dark"?"☀️ Modo claro":"🌙 Modo escuro";b.setAttribute("aria-pressed",t==="dark"?"true":"false");
+var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",t==="dark"?"#101A14":"#4F7A22");
+if(salvar){try{localStorage.setItem(TH,t)}catch(e){}}}
+aplicaTema(temaAtual(),false);
+$("#tema").addEventListener("click",function(){aplicaTema(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark",true)});
+/* ---- fim modo escuro ---- */
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function brl(n){return(+n||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
 function fd(d){if(!d)return"";var p=d.split("-");return p[2]+"/"+p[1]+"/"+p[0]}
