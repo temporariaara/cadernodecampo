@@ -164,6 +164,7 @@ if(/not confirmed/i.test(m))return"Confirme seu e-mail pelo link que enviamos an
 if(/already/i.test(m))return"Este e-mail já tem cadastro. Use Entrar.";
 if(/different from/i.test(m))return"A nova senha precisa ser diferente da anterior.";
 if(/at least/i.test(m))return"A senha precisa ter pelo menos 6 caracteres.";
+var w=m.match(/after (\d+) seconds/i);if(w)return"Aguarde "+w[1]+" segundos antes de pedir de novo.";
 if(/rate limit|too many/i.test(m))return"Muitas tentativas. Espere um pouco e tente de novo.";
 return"Não foi possível concluir. Detalhe: "+(m||"sem resposta")+". Verifique a conexão e tente de novo."}
 function amsg(t,ok){var m=$("#amsg");m.textContent=t;m.style.color=ok?"var(--g)":""}
