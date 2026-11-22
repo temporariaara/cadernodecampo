@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Caderno de Campo – controle para pequenos produtores rurais</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#E6EEF1;--ink:#1D2B21;--mut:#516157;--line:#BCC9C3;--panel:#F7FAFA;--g:#4F7A22;--w:#A8650F;--bad:#B3261E;--on:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101A14;--ink:#E7F0E9;--mut:#9DB0A3;--line:#2A3B30;--panel:#17251C;--g:#8BC34A;--w:#F0B04A;--bad:#FF8A80;--on:#10200A}}
+:root[data-theme="dark"]{--bg:#101A14;--ink:#E7F0E9;--mut:#9DB0A3;--line:#2A3B30;--panel:#17251C;--g:#8BC34A;--w:#F0B04A;--bad:#FF8A80;--on:#10200A}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.45 "Atkinson Hyperlegible",system-ui,sans-serif}
+main{max-width:720px;margin:0 auto;padding:22px 16px 80px}
+h1{margin:0;font-size:clamp(30px,8vw,44px);line-height:1.05;font-weight:700;letter-spacing:-.02em}
+.sub{color:var(--mut);margin:6px 0 16px}
+nav{display:flex;gap:6px;overflow-x:auto;border-bottom:3px solid var(--ink);margin-bottom:16px}
+nav button{font:700 16px/1 inherit;font-family:inherit;background:none;border:0;color:var(--mut);padding:12px 14px;cursor:pointer;white-space:nowrap;border-radius:8px 8px 0 0}
+nav button[aria-selected=true]{background:var(--ink);color:var(--bg)}
+label{display:block;font-size:14px;color:var(--mut);margin:10px 0 4px}
+input,select{font:inherit;color:var(--ink);background:var(--panel);border:1.5px solid var(--line);border-radius:8px;padding:11px 10px;width:100%;min-height:46px}
+:focus-visible{outline:3px solid var(--w);outline-offset:2px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{font:700 16px/1 inherit;font-family:inherit;border:2px solid var(--ink);background:transparent;color:var(--ink);padding:13px 16px;border-radius:8px;cursor:pointer;margin-top:12px}
+.btn.main{background:var(--g);border-color:var(--g);color:var(--on)}
+.btn.sm{padding:7px 10px;font-size:14px;margin:0;border-color:var(--line);color:var(--mut)}
+.sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.sum div{border-left:4px solid var(--g);padding:4px 10px}
+.sum small{display:block;color:var(--mut);font-size:13px}
+.sum b{font-size:19px}
+.neg{color:var(--bad)}
+h2{font-size:17px;margin:24px 0 6px;padding-top:12px;border-top:2px solid var(--ink)}
+.it{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.it small{display:block;color:var(--mut)}
+.late{color:var(--bad);font-weight:700}
+.empty{color:var(--mut);padding:10px 0}
+#msg{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
+#msg.on{opacity:1}
+@media(max-width:520px){.sum{grid-template-columns:1fr}}
+@media print{body{background:#fff;color:#000}nav,form,.noprint,#msg,.btn{display:none!important}section[hidden]{display:block!important}.it{break-inside:avoid}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>Caderno de Campo</h1>
+<p class="sub">Custos da safra, gado, chuva e aplicações no mesmo lugar, com histórico organizado para mostrar ao banco ou ao técnico.</p>
+<nav role="tablist" aria-label="Seções">
+<button role="tab" data-t="custos" aria-selected="true">Custos</button>
+<button role="tab" data-t="gado" aria-selected="false">Gado</button>
+<button role="tab" data-t="chuva" aria-selected="false">Chuva</button>
+<button role="tab" data-t="aplic" aria-selected="false">Aplicações</button>
+</nav>
+
+<section id="p-custos">
+<div class="two"><div><label for="sf">Safra</label><select id="sf"></select></div>
+<div><label for="nsf">Nova safra</label><input id="nsf" placeholder="Ex.: Milho 2026/27"></div></div>
+<button class="btn noprint" id="addsf" type="button">Criar safra</button>
+<div class="sum" id="sum"></div>
+<h2 class="noprint">Novo lançamento</h2>
+<form id="fc"><div class="two"><div><label for="ct">Tipo</label><select id="ct"><option value="c">Custo (saída)</option><option value="r">Receita (entrada)</option></select></div>
+<div><label for="cd">Data</label><input id="cd" type="date"></div></div>
+<div class="two"><div><label for="cc">Categoria</label><select id="cc"><option>Semente</option><option>Adubo</option><option>Defensivo</option><option>Mão de obra</option><option>Combustível</option><option>Ração</option><option>Veterinário</option><option>Venda</option><option>Outros</option></select></div>
+<div><label for="cv">Valor (R$)</label><input id="cv" type="number" min="0" step="any" inputmode="decimal"></div></div>
+<label for="cx">Descrição (opcional)</label><input id="cx">
+<button class="btn main" type="submit">Salvar lançamento</button></form>
+<h2>Lançamentos</h2><div id="lc"></div>
+<button class="btn noprint" id="pr" type="button">Imprimir resumo</button>
+</section>
+
+<section id="p-gado" hidden>
+<div class="two"><div><label for="an">Animal</label><select id="an"></select></div>
+<div><label for="nan">Novo animal (brinco ou nome)</label><input id="nan"></div></div>
+<button class="btn noprint" id="addan" type="button">Cadastrar animal</button>
+<div class="sum" id="gs"></div>
+<h2 class="noprint">Nova pesagem</h2>
+<form id="fp"><div class="two"><div><label for="pd">Data</label><input id="pd" type="date"></div><div><label for="pk">Peso (kg)</label><input id="pk" type="number" min="0" step="any" inputmode="decimal"></div></div>
+<button class="btn main" type="submit">Salvar pesagem</button></form>
+<h2 class="noprint">Nova vacina</h2>
+<form id="fv"><div class="two"><div><label for="vd">Data</label><input id="vd" type="date"></div><div><label for="vp">Vacina ou remédio</label><input id="vp"></div></div>
+<label for="vx">Próxima dose (opcional)</label><input id="vx" type="date">
+<button class="btn main" type="submit">Salvar vacina</button></form>
+<h2>Pesagens</h2><div id="lp"></div>
+<h2>Vacinas</h2><div id="lv"></div>
+</section>
+
+<section id="p-chuva" hidden>
+<div class="sum" id="cs"></div>
+<form id="fr"><div class="two"><div><label for="rd">Data</label><input id="rd" type="date"></div><div><label for="rm">Chuva (mm)</label><input id="rm" type="number" min="0" step="any" inputmode="decimal"></div></div>
+<button class="btn main" type="submit">Salvar chuva</button></form>
+<h2>Registros</h2><div id="lr"></div>
+</section>
+
+<section id="p-aplic" hidden>
+<form id="fa"><div class="two"><div><label for="ad">Data</label><input id="ad" type="date"></div><div><label for="ap">Produto</label><input id="ap"></div></div>
+<div class="two"><div><label for="al">Local ou talhão</label><input id="al"></div><div><label for="ao">Dose</label><input id="ao" placeholder="Ex.: 2 L por hectare"></div></div>
+<label for="ax">Observação (opcional)</label><input id="ax">
+<button class="btn main" type="submit">Salvar aplicação</button></form>
+<h2>Registros</h2><div id="la"></div>
+</section>
+</main>
+<div id="msg" role="status" aria-live="polite"></div>
+<script>
+(function(){
+var K="cadernocampo:v1",$=function(s){return document.querySelector(s)},today=new Date().toISOString().slice(0,10);
+var S={sf:null,safras:[],custos:[],animais:[],an:null,chuva:[],aplic:[]};
+function load(){try{var r=localStorage.getItem(K);if(r){var x=JSON.parse(r);if(x&&x.safras)S=x}}catch(e){}}
+function store(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function brl(n){return(+n||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
+function fd(d){if(!d)return"";var p=d.split("-");return p[2]+"/"+p[1]+"/"+p[0]}
+function num(n,c){return(+n||0).toLocaleString("pt-BR",{maximumFractionDigits:c==null?1:c})}
+function toast(t){var m=$("#msg");m.textContent=t;m.className="on";clearTimeout(toast.h);toast.h=setTimeout(function(){m.className=""},2000)}
+function days(a,b){return Math.round((new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/864e5)}
+function byDate(a,b){return a.d<b.d?1:a.d>b.d?-1:0}
+function del(btn,fn){return'<button class="btn sm" data-del="'+fn+'" data-id="'+btn+'" type="button">Excluir</button>'}
+function cur(){return S.animais.filter(function(a){return a.id===S.an})[0]}
+function rCustos(){
+$("#sf").innerHTML=S.safras.map(function(s){return'<option value="'+s.id+'"'+(s.id===S.sf?" selected":"")+'>'+esc(s.nome)+'</option>'}).join("")||'<option value="">Crie a primeira safra</option>';
+var L=S.custos.filter(function(c){return c.sf===S.sf}).sort(byDate),c=0,r=0;
+L.forEach(function(x){if(x.t==="c")c+=+x.v;else r+=+x.v});
+$("#sum").innerHTML='<div><small>Custos</small><b>'+brl(c)+'</b></div><div><small>Receitas</small><b>'+brl(r)+'</b></div><div><small>Resultado</small><b class="'+(r-c<0?"neg":"")+'">'+brl(r-c)+'</b></div>';
+$("#lc").innerHTML=L.map(function(x){return'<div class="it"><div><b>'+esc(x.cat)+'</b> · '+(x.t==="c"?"−":"+")+brl(x.v)+'<small>'+fd(x.d)+(x.x?" · "+esc(x.x):"")+'</small></div>'+del(x.id,"custos")+'</div>'}).join("")||'<p class="empty">'+(S.sf?"Nenhum lançamento nesta safra.":"Crie uma safra para começar.")+'</p>'}
+function rGado(){
+$("#an").innerHTML=S.animais.map(function(a){return'<option value="'+a.id+'"'+(a.id===S.an?" selected":"")+'>'+esc(a.nome)+'</option>'}).join("")||'<option value="">Cadastre um animal</option>';
+var a=cur(),P=a?a.pes.slice().sort(byDate):[],V=a?a.vac.slice().sort(byDate):[],g="";
+if(P.length){var u=P[0];g='<div><small>Último peso</small><b>'+num(u.kg)+' kg</b></div>';
+if(P.length>1){var f=P[P.length-1],d=days(f.d,u.d),ganho=u.kg-f.kg;g+='<div><small>Ganho total</small><b>'+num(ganho)+' kg</b></div><div><small>Ganho por dia</small><b>'+(d>0?num(ganho/d,2)+' kg':"—")+'</b></div>'}}
+$("#gs").innerHTML=g;
+$("#lp").innerHTML=P.map(function(x){return'<div class="it"><div><b>'+num(x.kg)+' kg</b><small>'+fd(x.d)+'</small></div>'+del(x.id,"pes")+'</div>'}).join("")||'<p class="empty">'+(a?"Nenhuma pesagem ainda.":"Cadastre um animal para registrar pesagens.")+'</p>';
+$("#lv").innerHTML=V.map(function(x){var late=x.px&&x.px<=today;return'<div class="it"><div><b>'+esc(x.p||"Vacina")+'</b><small>'+fd(x.d)+(x.px?' · <span class="'+(late?"late":"")+'">próxima dose: '+fd(x.px)+(late?" (vencida ou hoje)":"")+'</span>':"")+'</small></div>'+del(x.id,"vac")+'</div>'}).join("")||'<p class="empty">'+(a?"Nenhuma vacina registrada.":"")+'</p>'}
+function rChuva(){var L=S.chuva.slice().sort(byDate),m=today.slice(0,7),y=today.slice(0,4),tm=0,ty=0;
+L.forEach(function(x){if(x.d.slice(0,7)===m)tm+=+x.mm;if(x.d.slice(0,4)===y)ty+=+x.mm});
+$("#cs").innerHTML='<div><small>Neste mês</small><b>'+num(tm)+' mm</b></div><div><small>Neste ano</small><b>'+num(ty)+' mm</b></div><div><small>Registros</small><b>'+L.length+'</b></div>';
+$("#lr").innerHTML=L.map(function(x){return'<div class="it"><div><b>'+num(x.mm)+' mm</b><small>'+fd(x.d)+'</small></div>'+del(x.id,"chuva")+'</div>'}).join("")||'<p class="empty">Nenhuma chuva registrada.</p>'}
+function rAplic(){$("#la").innerHTML=S.aplic.slice().sort(byDate).map(function(x){return'<div class="it"><div><b>'+esc(x.p)+'</b>'+(x.o?" · "+esc(x.o):"")+'<small>'+fd(x.d)+(x.l?" · "+esc(x.l):"")+(x.x?" · "+esc(x.x):"")+'</small></div>'+del(x.id,"aplic")+'</div>'}).join("")||'<p class="empty">Nenhuma aplicação registrada.</p>'}
+function all(){rCustos();rGado();rChuva();rAplic()}
+function id(){return Date.now()+Math.random().toString(36).slice(2,6)}
+load();["cd","pd","vd","rd","ad"].forEach(function(k){$("#"+k).value=today});all();
+document.querySelectorAll("nav button").forEach(function(b){b.addEventListener("click",function(){document.querySelectorAll("nav button").forEach(function(o){o.setAttribute("aria-selected",o===b)});["custos","gado","chuva","aplic"].forEach(function(t){$("#p-"+t).hidden=t!==b.dataset.t})})});
+$("#addsf").addEventListener("click",function(){var n=$("#nsf").value.trim();if(!n){toast("Digite o nome da safra.");return}var s={id:id(),nome:n};S.safras.push(s);S.sf=s.id;$("#nsf").value="";store();all()});
+$("#sf").addEventListener("change",function(e){S.sf=e.target.value;store();rCustos()});
+$("#addan").addEventListener("click",function(){var n=$("#nan").value.trim();if(!n){toast("Digite o brinco ou nome.");return}var a={id:id(),nome:n,pes:[],vac:[]};S.animais.push(a);S.an=a.id;$("#nan").value="";store();rGado()});
+$("#an").addEventListener("change",function(e){S.an=e.target.value;store();rGado()});
+$("#fc").addEventListener("submit",function(e){e.preventDefault();if(!S.sf){toast("Crie uma safra primeiro.");return}if(!+$("#cv").value){toast("Informe o valor.");return}
+S.custos.push({id:id(),sf:S.sf,t:$("#ct").value,d:$("#cd").value,cat:$("#cc").value,v:$("#cv").value,x:$("#cx").value.trim()});$("#cv").value="";$("#cx").value="";store();rCustos();toast("Lançamento salvo.")});
+$("#fp").addEventListener("submit",function(e){e.preventDefault();var a=cur();if(!a){toast("Cadastre um animal primeiro.");return}if(!+$("#pk").value){toast("Informe o peso.");return}
+a.pes.push({id:id(),d:$("#pd").value,kg:$("#pk").value});$("#pk").value="";store();rGado();toast("Pesagem salva.")});
+$("#fv").addEventListener("submit",function(e){e.preventDefault();var a=cur();if(!a){toast("Cadastre um animal primeiro.");return}
+a.vac.push({id:id(),d:$("#vd").value,p:$("#vp").value.trim(),px:$("#vx").value});$("#vp").value="";$("#vx").value="";store();rGado();toast("Vacina salva.")});
+$("#fr").addEventListener("submit",function(e){e.preventDefault();if($("#rm").value===""){toast("Informe os milímetros.");return}
+S.chuva.push({id:id(),d:$("#rd").value,mm:$("#rm").value});$("#rm").value="";store();rChuva();toast("Chuva salva.")});
+$("#fa").addEventListener("submit",function(e){e.preventDefault();if(!$("#ap").value.trim()){toast("Informe o produto.");return}
+S.aplic.push({id:id(),d:$("#ad").value,p:$("#ap").value.trim(),l:$("#al").value.trim(),o:$("#ao").value.trim(),x:$("#ax").value.trim()});["ap","al","ao","ax"].forEach(function(k){$("#"+k).value=""});store();rAplic();toast("Aplicação salva.")});
+$("#pr").addEventListener("click",function(){try{window.print()}catch(e){toast("Use o menu do navegador para imprimir.")}});
+document.addEventListener("click",function(e){var g=e.target;if(!g.dataset.del||!confirm("Excluir este registro?"))return;var k=g.dataset.del,i=g.dataset.id,a=cur();
+if(k==="custos")S.custos=S.custos.filter(function(x){return x.id!==i});
+else if(k==="chuva")S.chuva=S.chuva.filter(function(x){return x.id!==i});
+else if(k==="aplic")S.aplic=S.aplic.filter(function(x){return x.id!==i});
+else if(a&&k==="pes")a.pes=a.pes.filter(function(x){return x.id!==i});
+else if(a&&k==="vac")a.vac=a.vac.filter(function(x){return x.id!==i});
+store();all()});
+})();
+</script>
+</body>
+</html>
