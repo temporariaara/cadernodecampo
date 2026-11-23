@@ -56,6 +56,32 @@ h2{font-size:17px;margin:24px 0 6px;padding-top:12px;border-top:2px solid var(--
 #amsg,#rmsg{min-height:1.4em;margin-top:8px;color:var(--bad)}
 .link{background:none;border:0;padding:10px 0 0;color:var(--g);font:inherit;text-decoration:underline;cursor:pointer}
 #auth .btn+.btn{margin-left:8px}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.hint{color:var(--mut);font-size:14px;margin:10px 0 0}
+.aviso{width:100%;text-align:left;border-color:var(--w);margin:0 0 12px}
+.bar{display:grid;grid-template-columns:78px 1fr auto;gap:10px;align-items:center;margin:8px 0;font-size:14px}
+.bt{background:var(--line);border-radius:4px;height:18px;overflow:hidden}
+.bf{height:100%;background:var(--g);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.bf.c{background:var(--w)}
+.bf.n{background:var(--bad)}
+.bv{text-align:right;font-weight:700;white-space:nowrap}
+#rel{display:none}
+.rel{font-size:13px}
+.rel h1{font-size:24px}
+.rel h3{font-size:15px;margin:14px 0 4px}
+.rel .rm{color:var(--mut);margin:4px 0 0}
+.rel table{width:100%;border-collapse:collapse;font-size:12px;margin:6px 0 10px}
+.rel th,.rel td{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top}
+.rel th{border-bottom:2px solid var(--ink)}
+.rel .r{text-align:right}
+.rel tr,.rel .bar,.rel .sum{break-inside:avoid}
+.rel h2,.rel h3{break-after:avoid}
+.rel .fn{font-size:11px;color:var(--mut);margin-top:22px}
+@media print{
+:root[data-theme="dark"],:root[data-theme="light"],:root:not([data-theme="light"]){--bg:#fff;--ink:#111;--mut:#444;--line:#bbb;--panel:#fff;--g:#2f5a0f;--w:#a8650f;--bad:#b3261e}
+body.pr-rel main>*:not(#rel){display:none!important}
+body.pr-rel #rel{display:block}
+}
 </style>
 </head>
 <body>
@@ -71,11 +97,13 @@ h2{font-size:17px;margin:24px 0 6px;padding-top:12px;border-top:2px solid var(--
 <section id="rec" hidden><h2>Criar nova senha</h2><form id="frec"><label for="np">Nova senha (mínimo 6 caracteres)</label><input id="np" type="password" autocomplete="new-password" minlength="6" required><div id="rmsg" role="alert"></div><button class="btn main" type="submit">Salvar nova senha</button></form></section>
 <div id="app" hidden>
 <div class="who noprint"><span id="who"></span><button class="btn sm" id="out" type="button">Sair</button></div>
+<div id="aviso" class="noprint" hidden><button class="btn aviso" id="avb" type="button"></button></div>
 <nav role="tablist" aria-label="Seções">
 <button role="tab" data-t="custos" aria-selected="true">Custos</button>
 <button role="tab" data-t="gado" aria-selected="false">Gado</button>
 <button role="tab" data-t="chuva" aria-selected="false">Chuva</button>
 <button role="tab" data-t="aplic" aria-selected="false">Aplicações</button>
+<button role="tab" data-t="resumo" aria-selected="false">Resumo</button>
 </nav>
 
 <section id="p-custos">
@@ -95,6 +123,13 @@ h2{font-size:17px;margin:24px 0 6px;padding-top:12px;border-top:2px solid var(--
 </section>
 
 <section id="p-gado" hidden>
+<div id="lemw" class="noprint" hidden>
+<h2>Vacinas para os próximos 30 dias</h2>
+<div id="lem"></div>
+<label for="zap">Seu WhatsApp com DDD</label><input id="zap" type="tel" inputmode="tel" autocomplete="tel" placeholder="(73) 99999-9999">
+<div class="acts"><button class="btn main" id="lzap" type="button">Lembrar no WhatsApp</button><button class="btn" id="lmail" type="button">Lembrar por e-mail</button><button class="btn" id="lics" type="button">Salvar no calendário</button></div>
+<p class="hint">WhatsApp e e-mail abrem uma mensagem pronta para você enviar. No calendário, o celular avisa sozinho na véspera e no dia da vacina.</p>
+</div>
 <div class="two"><div><label for="an">Animal</label><select id="an"></select></div>
 <div><label for="nan">Novo animal (brinco ou nome)</label><input id="nan"></div></div>
 <button class="btn noprint" id="addan" type="button">Cadastrar animal</button>
@@ -124,12 +159,27 @@ h2{font-size:17px;margin:24px 0 6px;padding-top:12px;border-top:2px solid var(--
 <button class="btn main" type="submit">Salvar aplicação</button></form>
 <h2>Registros</h2><div id="la"></div>
 </section>
+
+<section id="p-resumo" hidden>
+<label for="sf2">Safra</label><select id="sf2"></select>
+<div class="sum" id="rs"></div>
+<h2>Quanto gastou, vendeu e sobrou</h2><div id="gr"></div>
+<h2>Gastos por categoria</h2><div id="gc"></div>
+<h2>Todas as safras</h2><div id="ts"></div>
+<h2 class="noprint">Relatório e planilha</h2>
+<div class="noprint">
+<label for="prod">Nome do produtor ou propriedade (aparece no relatório)</label><input id="prod" autocomplete="name">
+<div class="acts"><button class="btn main" id="pdf" type="button">Gerar relatório em PDF</button><button class="btn" id="xls" type="button">Exportar para Excel</button></div>
+<p class="hint">O relatório abre a tela de impressão: escolha "Salvar como PDF". A planilha leva todos os seus registros, em abas separadas.</p>
 </div>
+</section>
+</div>
+<div id="rel" class="rel"></div>
 </main>
 <div id="msg" role="status" aria-live="polite"></div>
 <script>
 (function(){
-var $=function(s){return document.querySelector(s)},today=new Date().toISOString().slice(0,10);
+var $=function(s){return document.querySelector(s)},today=new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
 var API="https://rlznegdadizdezkcvcvf.supabase.co",KEY="sb_publishable_HMFQNV7EbcCqb_gGZKmLeQ_TrcCMWqg",TK="cadernocampo:sessao",tok=null,busy=false;
 var S={sf:null,safras:[],custos:[],animais:[],an:null,chuva:[],aplic:[]};
 /* ---- Modo escuro ---- */
@@ -166,13 +216,13 @@ if(P.length){var u=P[0];g='<div><small>Último peso</small><b>'+num(u.kg)+' kg</
 if(P.length>1){var f=P[P.length-1],d=days(f.d,u.d),ganho=u.kg-f.kg;g+='<div><small>Ganho total</small><b>'+num(ganho)+' kg</b></div><div><small>Ganho por dia</small><b>'+(d>0?num(ganho/d,2)+' kg':"—")+'</b></div>'}}
 $("#gs").innerHTML=g;
 $("#lp").innerHTML=P.map(function(x){return'<div class="it"><div><b>'+num(x.kg)+' kg</b><small>'+fd(x.d)+'</small></div>'+del(x.id,"pes")+'</div>'}).join("")||'<p class="empty">'+(a?"Nenhuma pesagem ainda.":"Cadastre um animal para registrar pesagens.")+'</p>';
-$("#lv").innerHTML=V.map(function(x){var late=x.px&&x.px<=today;return'<div class="it"><div><b>'+esc(x.p||"Vacina")+'</b><small>'+fd(x.d)+(x.px?' · <span class="'+(late?"late":"")+'">próxima dose: '+fd(x.px)+(late?" (vencida ou hoje)":"")+'</span>':"")+'</small></div>'+del(x.id,"vac")+'</div>'}).join("")||'<p class="empty">'+(a?"Nenhuma vacina registrada.":"")+'</p>'}
+$("#lv").innerHTML=V.map(function(x){var late=x.px&&x.px<=today;return'<div class="it"><div><b>'+esc(x.p||"Vacina")+'</b><small>'+fd(x.d)+(x.px?' · <span class="'+(late?"late":"")+'">próxima dose: '+fd(x.px)+(late?" (vencida ou hoje)":"")+'</span>':"")+'</small></div>'+del(x.id,"vac")+'</div>'}).join("")||'<p class="empty">'+(a?"Nenhuma vacina registrada.":"")+'</p>';rLem();rAviso()}
 function rChuva(){var L=S.chuva.slice().sort(byDate),m=today.slice(0,7),y=today.slice(0,4),tm=0,ty=0;
 L.forEach(function(x){if(x.d.slice(0,7)===m)tm+=+x.mm;if(x.d.slice(0,4)===y)ty+=+x.mm});
 $("#cs").innerHTML='<div><small>Neste mês</small><b>'+num(tm)+' mm</b></div><div><small>Neste ano</small><b>'+num(ty)+' mm</b></div><div><small>Registros</small><b>'+L.length+'</b></div>';
 $("#lr").innerHTML=L.map(function(x){return'<div class="it"><div><b>'+num(x.mm)+' mm</b><small>'+fd(x.d)+'</small></div>'+del(x.id,"chuva")+'</div>'}).join("")||'<p class="empty">Nenhuma chuva registrada.</p>'}
 function rAplic(){$("#la").innerHTML=S.aplic.slice().sort(byDate).map(function(x){return'<div class="it"><div><b>'+esc(x.p)+'</b>'+(x.o?" · "+esc(x.o):"")+'<small>'+fd(x.d)+(x.l?" · "+esc(x.l):"")+(x.x?" · "+esc(x.x):"")+'</small></div>'+del(x.id,"aplic")+'</div>'}).join("")||'<p class="empty">Nenhuma aplicação registrada.</p>'}
-function all(){rCustos();rGado();rChuva();rAplic()}
+function all(){rCustos();rGado();rChuva();rAplic();rResumo()}
 function msg(e){var m=String(e&&e.message||"");
 if(/Invalid login/i.test(m))return"E-mail ou senha incorretos.";
 if(/not confirmed/i.test(m))return"Confirme seu e-mail pelo link que enviamos antes de entrar.";
@@ -214,16 +264,19 @@ $("#signup").addEventListener("click",function(){var em=$("#em").value.trim();am
 run(async function(){var d=await authCall("signup",{email:em,password:$("#pw").value});
 if(d.access_token){setSession(d,em);await entrar()}else amsg("Cadastro feito. Enviamos um link de confirmação para o seu e-mail. Confirme e depois toque em Entrar.",true)},function(x){amsg(msg(x))})});
 $("#out").addEventListener("click",sair);
-document.querySelectorAll("nav button").forEach(function(b){b.addEventListener("click",function(){document.querySelectorAll("nav button").forEach(function(o){o.setAttribute("aria-selected",o===b)});["custos","gado","chuva","aplic"].forEach(function(t){$("#p-"+t).hidden=t!==b.dataset.t})})});
+function tab(t){document.querySelectorAll("nav button").forEach(function(o){o.setAttribute("aria-selected",o.dataset.t===t)});["custos","gado","chuva","aplic","resumo"].forEach(function(x){$("#p-"+x).hidden=x!==t})}
+document.querySelectorAll("nav button").forEach(function(b){b.addEventListener("click",function(){tab(b.dataset.t)})});
+$("#avb").addEventListener("click",function(){tab("gado")});
 $("#addsf").addEventListener("click",function(){var n=$("#nsf").value.trim();if(!n){toast("Digite o nome da safra.");return}
 run(async function(){var r=(await api("POST","safras",{nome:n}))[0];S.safras.push({id:r.id,nome:r.nome});S.sf=r.id;$("#nsf").value="";all()})});
-$("#sf").addEventListener("change",function(e){S.sf=e.target.value;rCustos()});
+$("#sf").addEventListener("change",function(e){S.sf=e.target.value;rCustos();rResumo()});
+$("#sf2").addEventListener("change",function(e){S.sf=e.target.value;rCustos();rResumo()});
 $("#addan").addEventListener("click",function(){var n=$("#nan").value.trim();if(!n){toast("Digite o brinco ou nome.");return}
 run(async function(){var r=(await api("POST","animais",{nome:n}))[0];S.animais.push({id:r.id,nome:r.nome,pes:[],vac:[]});S.an=r.id;$("#nan").value="";rGado()})});
 $("#an").addEventListener("change",function(e){S.an=e.target.value;rGado()});
 $("#fc").addEventListener("submit",function(e){e.preventDefault();if(!S.sf){toast("Crie uma safra primeiro.");return}if(!+$("#cv").value){toast("Informe o valor.");return}
 run(async function(){var r=(await api("POST","custos",{safra_id:S.sf,tipo:$("#ct").value,data:$("#cd").value,categoria:$("#cc").value,descricao:$("#cx").value.trim(),valor:+$("#cv").value}))[0];
-S.custos.push({id:r.id,sf:r.safra_id,t:r.tipo,d:r.data,cat:r.categoria,v:r.valor,x:r.descricao});$("#cv").value="";$("#cx").value="";rCustos();toast("Lançamento salvo.")})});
+S.custos.push({id:r.id,sf:r.safra_id,t:r.tipo,d:r.data,cat:r.categoria,v:r.valor,x:r.descricao});$("#cv").value="";$("#cx").value="";rCustos();rResumo();toast("Lançamento salvo.")})});
 $("#fp").addEventListener("submit",function(e){e.preventDefault();var a=cur();if(!a){toast("Cadastre um animal primeiro.");return}if(!+$("#pk").value){toast("Informe o peso.");return}
 run(async function(){var r=(await api("POST","pesagens",{animal_id:a.id,data:$("#pd").value,kg:+$("#pk").value}))[0];a.pes.push({id:r.id,d:r.data,kg:r.kg});$("#pk").value="";rGado();toast("Pesagem salva.")})});
 $("#fv").addEventListener("submit",function(e){e.preventDefault();var a=cur();if(!a){toast("Cadastre um animal primeiro.");return}
@@ -234,7 +287,7 @@ run(async function(){var r=(await api("POST","chuvas",{data:$("#rd").value,mm:+$
 $("#fa").addEventListener("submit",function(e){e.preventDefault();if(!$("#ap").value.trim()){toast("Informe o produto.");return}
 run(async function(){var r=(await api("POST","aplicacoes",{data:$("#ad").value,produto:$("#ap").value.trim(),local:$("#al").value.trim(),dose:$("#ao").value.trim(),obs:$("#ax").value.trim()}))[0];
 S.aplic.push({id:r.id,d:r.data,p:r.produto,l:r.local,o:r.dose,x:r.obs});["ap","al","ao","ax"].forEach(function(k){$("#"+k).value=""});rAplic();toast("Aplicação salva.")})});
-$("#pr").addEventListener("click",function(){try{window.print()}catch(e){toast("Use o menu do navegador para imprimir.")}});
+$("#pr").addEventListener("click",function(){document.body.classList.remove("pr-rel");try{window.print()}catch(e){toast("Use o menu do navegador para imprimir.")}});
 document.addEventListener("click",function(e){var g=e.target;if(!g.dataset.del||!confirm("Excluir este registro?"))return;
 var k=g.dataset.del,i=g.dataset.id,a=cur(),T={custos:"custos",chuva:"chuvas",aplic:"aplicacoes",pes:"pesagens",vac:"vacinas"};
 run(async function(){await api("DELETE",T[k]+"?id=eq."+encodeURIComponent(i));
@@ -244,6 +297,94 @@ else if(k==="aplic")S.aplic=S.aplic.filter(function(x){return x.id!==i});
 else if(a&&k==="pes")a.pes=a.pes.filter(function(x){return x.id!==i});
 else if(a&&k==="vac")a.vac=a.vac.filter(function(x){return x.id!==i});
 all()})});
+/* ---- Resumo, relatorio, Excel e lembretes ---- */
+function asc(a,b){return a.d<b.d?-1:a.d>b.d?1:0}
+function sfNome(id){var s=S.safras.filter(function(x){return x.id===id})[0];return s?s.nome:""}
+function tot(id){var c=0,r=0;S.custos.forEach(function(x){if(x.sf===id){if(x.t==="c")c+=+x.v;else r+=+x.v}});return{c:c,r:r}}
+function porCat(id){var m={};S.custos.forEach(function(x){if(x.sf===id&&x.t==="c")m[x.cat]=(m[x.cat]||0)+ +x.v});return Object.keys(m).map(function(k){return{k:k,v:m[k]}}).sort(function(a,b){return b.v-a.v})}
+function sumH(c,r,res){return'<div class="sum"><div><small>Custos</small><b>'+brl(c)+'</b></div><div><small>Receitas</small><b>'+brl(r)+'</b></div><div><small>Resultado</small><b class="'+(res<0?"neg":"")+'">'+brl(res)+'</b></div></div>'}
+function bars(I){var mx=Math.max.apply(null,I.map(function(i){return Math.abs(i.v)}))||1;
+return I.map(function(i){var w=i.v?Math.max(2,Math.abs(i.v)/mx*100):0;return'<div class="bar"><div>'+esc(i.l)+'</div><div class="bt"><div class="bf '+(i.c||"")+'" style="width:'+w+'%"></div></div><div class="bv">'+esc(i.t)+'</div></div>'}).join("")}
+function barsDe(T){var res=T.r-T.c;if(!T.c&&!T.r)return"";return bars([{l:"Gastou",v:T.c,t:brl(T.c),c:"c"},{l:"Vendeu",v:T.r,t:brl(T.r)},{l:res<0?"Prejuízo":"Sobrou",v:res,t:brl(res),c:res<0?"n":""}])}
+function rResumo(){
+$("#sf2").innerHTML=S.safras.map(function(s){return'<option value="'+s.id+'"'+(s.id===S.sf?" selected":"")+'>'+esc(s.nome)+'</option>'}).join("")||'<option value="">Crie a primeira safra</option>';
+var T=tot(S.sf),res=T.r-T.c,cats=S.sf?porCat(S.sf):[];
+$("#rs").innerHTML=sumH(T.c,T.r,res);
+$("#gr").innerHTML=barsDe(T)||'<p class="empty">Registre custos e receitas para ver o gráfico.</p>';
+$("#gc").innerHTML=cats.length?bars(cats.map(function(k){return{l:k.k,v:k.v,t:brl(k.v)+" ("+Math.round(k.v/T.c*100)+"%)",c:"c"}})):'<p class="empty">Nenhum custo lançado nesta safra.</p>';
+$("#ts").innerHTML=S.safras.map(function(s){var t=tot(s.id),x=t.r-t.c;return'<div class="it"><div><b>'+esc(s.nome)+'</b><small>Custos '+brl(t.c)+' · Receitas '+brl(t.r)+'</small></div><b class="'+(x<0?"neg":"")+'">'+brl(x)+'</b></div>'}).join("")||'<p class="empty">Nenhuma safra cadastrada.</p>'}
+function doses(){var L=[];S.animais.forEach(function(a){a.vac.forEach(function(v){if(!v.px)return;var p=(v.p||"").trim().toLowerCase();
+if(a.vac.some(function(o){return o!==v&&(o.p||"").trim().toLowerCase()===p&&o.d>v.d}))return;
+L.push({id:a.id,a:a.nome,vid:v.id,p:v.p||"Vacina",px:v.px,n:days(today,v.px)})})});
+return L.sort(function(x,y){return x.px<y.px?-1:x.px>y.px?1:0})}
+function soon(){return doses().filter(function(d){return d.n<=30})}
+function rLem(){var D=soon();$("#lemw").hidden=!D.length;
+$("#lem").innerHTML=D.map(function(d){var s=d.n<0?"vencida há "+(-d.n)+(d.n===-1?" dia":" dias"):d.n===0?"é hoje":"em "+d.n+(d.n===1?" dia":" dias");
+return'<div class="it"><div><b>'+esc(d.p)+' · '+esc(d.a)+'</b><small>'+fd(d.px)+' · <span class="'+(d.n<=0?"late":"")+'">'+s+'</span></small></div></div>'}).join("")}
+function rAviso(){var n=doses().filter(function(d){return d.n<=7}).length,b=$("#aviso");b.hidden=!n;
+if(n)$("#avb").textContent="⚠️ "+n+(n>1?" vacinas vencidas ou para os próximos 7 dias. Ver agora":" vacina vencida ou para os próximos 7 dias. Ver agora")}
+function lembTxt(){return"Caderno de Campo – vacinas para fazer:\n"+soon().map(function(d){return"• "+d.p+" ("+d.a+") – "+fd(d.px)+(d.n<0?" (vencida)":d.n===0?" (hoje)":"")}).join("\n")}
+function ie(t){return String(t).replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\n/g,"\\n")}
+function baixar(nome,tipo,txt){var b=new Blob([txt],{type:tipo}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=nome;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},1500)}
+function ics(){var D=doses().filter(function(d){return d.n>=0});if(!D.length){toast("Nenhuma dose futura para o calendário.");return}
+var z=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,""),L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Caderno de Campo//PT","CALSCALE:GREGORIAN"];
+D.forEach(function(d,i){var a=d.px.replace(/-/g,""),e=new Date(d.px+"T12:00:00");e.setDate(e.getDate()+1);
+var f=e.getFullYear()+("0"+(e.getMonth()+1)).slice(-2)+("0"+e.getDate()).slice(-2),t=d.p+" ("+d.a+")";
+L.push("BEGIN:VEVENT","UID:"+d.vid+"-"+a+"-"+i+"@cadernodecampo","DTSTAMP:"+z,"DTSTART;VALUE=DATE:"+a,"DTEND;VALUE=DATE:"+f,"SUMMARY:"+ie("Vacina: "+t),
+"BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+ie("Vacina amanhã: "+t),"TRIGGER:-PT15H","END:VALARM",
+"BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+ie("Vacina hoje: "+t),"TRIGGER:PT8H","END:VALARM","END:VEVENT")});
+L.push("END:VCALENDAR");baixar("vacinas-caderno-de-campo.ics","text/calendar",L.join("\r\n"));toast("Calendário baixado. Abra o arquivo para adicionar.")}
+function planilhas(){
+var R=[["Safra","Custos (R$)","Receitas (R$)","Resultado (R$)"]],C=[["Safra","Tipo","Data","Categoria","Descrição","Valor (R$)"]],P=[["Animal","Data","Peso (kg)"]],V=[["Animal","Data","Vacina ou remédio","Próxima dose"]],H=[["Data","Chuva (mm)"]],A=[["Data","Produto","Local ou talhão","Dose","Observação"]];
+S.safras.forEach(function(s){var t=tot(s.id);R.push([s.nome,t.c,t.r,t.r-t.c])});
+S.custos.slice().sort(asc).forEach(function(x){C.push([sfNome(x.sf),x.t==="c"?"Custo":"Receita",fd(x.d),x.cat,x.x||"",+x.v])});
+S.animais.forEach(function(a){a.pes.slice().sort(asc).forEach(function(p){P.push([a.nome,fd(p.d),+p.kg])});a.vac.slice().sort(asc).forEach(function(v){V.push([a.nome,fd(v.d),v.p||"",fd(v.px)])})});
+S.chuva.slice().sort(asc).forEach(function(x){H.push([fd(x.d),+x.mm])});
+S.aplic.slice().sort(asc).forEach(function(x){A.push([fd(x.d),x.p||"",x.l||"",x.o||"",x.x||""])});
+return[{n:"Resumo",rows:R},{n:"Custos e receitas",rows:C},{n:"Pesagens",rows:P},{n:"Vacinas",rows:V},{n:"Chuva",rows:H},{n:"Aplicações",rows:A}]}
+function csv(rows){return"\ufeff"+rows.map(function(r){return r.map(function(c){if(typeof c==="number")return String(c).replace(".",",");c=String(c==null?"":c);if(/^[=+\-@]/.test(c))c="'"+c;return'"'+c.replace(/"/g,'""')+'"'}).join(";")}).join("\r\n")}
+function loadXLSX(){return new Promise(function(ok,no){if(window.XLSX)return ok(window.XLSX);var s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";s.onload=function(){window.XLSX?ok(window.XLSX):no()};s.onerror=no;document.head.appendChild(s)})}
+function tbl(h,R,rt){rt=rt||[];var c=function(i){return rt.indexOf(i)>-1?' class="r"':""};
+return'<table><thead><tr>'+h.map(function(x,i){return'<th'+c(i)+'>'+esc(x)+'</th>'}).join("")+'</tr></thead><tbody>'+R.map(function(r){return'<tr>'+r.map(function(x,i){return'<td'+c(i)+'>'+esc(x)+'</td>'}).join("")+'</tr>'}).join("")+'</tbody></table>'}
+function relHTML(){
+var nome=$("#prod").value.trim(),h='<h1>Relatório de gestão rural</h1><p class="rm">'+(nome?'<b>'+esc(nome)+'</b><br>':"")+'Conta: '+esc(tok&&tok.email||"")+'<br>Emitido em '+fd(today)+'</p>';
+if(S.sf){var T=tot(S.sf),res=T.r-T.c,Lc=S.custos.filter(function(x){return x.sf===S.sf}).sort(asc),cats=porCat(S.sf);
+h+='<h2>Safra: '+esc(sfNome(S.sf))+'</h2>'+sumH(T.c,T.r,res)+barsDe(T);
+if(cats.length)h+='<h3>Gastos por categoria</h3>'+tbl(["Categoria","Total","% dos custos"],cats.map(function(k){return[k.k,brl(k.v),Math.round(k.v/T.c*100)+"%"]}),[1,2]);
+h+='<h3>Lançamentos</h3>'+(Lc.length?tbl(["Data","Tipo","Categoria","Descrição","Valor"],Lc.map(function(x){return[fd(x.d),x.t==="c"?"Custo":"Receita",x.cat,x.x||"",(x.t==="c"?"−":"+")+brl(x.v)]}),[4]):'<p class="empty">Nenhum lançamento nesta safra.</p>')}
+if(S.animais.length){h+='<h2>Rebanho</h2>'+tbl(["Animal","Pesagens","Último peso","Ganho por dia","Última vacina","Próxima dose"],S.animais.map(function(a){
+var P=a.pes.slice().sort(byDate),V=a.vac.slice().sort(byDate),u=P[0],gmd="—";
+if(P.length>1){var f=P[P.length-1],d=days(f.d,u.d);if(d>0)gmd=num((u.kg-f.kg)/d,2)+" kg"}
+var nx=doses().filter(function(d){return d.id===a.id})[0];
+return[a.nome,String(P.length),u?num(u.kg)+" kg":"—",gmd,V[0]?(V[0].p||"Vacina")+" em "+fd(V[0].d):"—",nx?fd(nx.px):"—"]}),[1,2,3])}
+if(S.chuva.length){var M={};S.chuva.forEach(function(x){var k=x.d.slice(0,7);M[k]=(M[k]||0)+ +x.mm});
+var ks=Object.keys(M).sort().reverse().slice(0,12);
+h+='<h2>Chuva (últimos meses registrados)</h2>'+tbl(["Mês","Total"],ks.map(function(k){return[k.slice(5)+"/"+k.slice(0,4),num(M[k])+" mm"]}),[1])}
+if(S.aplic.length)h+='<h2>Aplicações</h2>'+tbl(["Data","Produto","Local ou talhão","Dose"],S.aplic.slice().sort(byDate).map(function(x){return[fd(x.d),x.p||"",x.l||"",x.o||""]}));
+h+='<p class="fn">Documento gerado a partir dos registros feitos pelo próprio produtor no Caderno de Campo. Não substitui notas fiscais, laudos ou documentos oficiais.</p>';
+return h}
+try{$("#prod").value=localStorage.getItem("cadernocampo:produtor")||"";$("#zap").value=localStorage.getItem("cadernocampo:zap")||""}catch(e){}
+$("#prod").addEventListener("input",function(){try{localStorage.setItem("cadernocampo:produtor",$("#prod").value)}catch(e){}});
+$("#zap").addEventListener("input",function(){try{localStorage.setItem("cadernocampo:zap",$("#zap").value)}catch(e){}});
+$("#pdf").addEventListener("click",function(){
+if(!S.safras.length&&!S.animais.length&&!S.chuva.length&&!S.aplic.length){toast("Ainda não há registros para o relatório.");return}
+$("#rel").innerHTML=relHTML();document.body.classList.add("pr-rel");
+setTimeout(function(){try{window.print()}catch(e){toast("Use o menu do navegador para imprimir.")}},60)});
+window.addEventListener("afterprint",function(){document.body.classList.remove("pr-rel")});
+$("#xls").addEventListener("click",function(){var sh=planilhas();toast("Gerando planilha…");
+loadXLSX().then(function(X){var wb=X.utils.book_new();
+sh.forEach(function(s){var ws=X.utils.aoa_to_sheet(s.rows);
+ws["!cols"]=s.rows[0].map(function(h,i){var w=String(h).length;s.rows.forEach(function(r){w=Math.max(w,String(r[i]==null?"":r[i]).length)});return{wch:Math.min(40,w+2)}});
+X.utils.book_append_sheet(wb,ws,s.n)});
+X.writeFile(wb,"caderno-de-campo-"+today+".xlsx");toast("Planilha baixada.")}).catch(function(){
+baixar("custos-"+today+".csv","text/csv;charset=utf-8",csv(sh[1].rows));toast("Não foi possível carregar o gerador de Excel. Baixamos os custos em CSV, que o Excel também abre.")})});
+$("#lzap").addEventListener("click",function(){var n=$("#zap").value.replace(/\D/g,"");
+if(n&&n.length<10){toast("Digite o WhatsApp com DDD.");return}
+if(n&&n.length<=11)n="55"+n;
+window.open("https://wa.me/"+n+"?text="+encodeURIComponent(lembTxt()),"_blank","noopener")});
+$("#lmail").addEventListener("click",function(){location.href="mailto:"+encodeURIComponent(tok&&tok.email||"")+"?subject="+encodeURIComponent("Lembrete de vacinas – Caderno de Campo")+"&body="+encodeURIComponent(lembTxt())});
+$("#lics").addEventListener("click",ics);
+/* ---- fim ---- */
 var rec=null;
 function jwtEmail(t){try{return JSON.parse(atob(t.split(".")[1].replace(/-/g,"+").replace(/_/g,"/"))).email||""}catch(e){return""}}
 $("#forgot").addEventListener("click",function(){var em=$("#em").value.trim();amsg("");if(!em){amsg("Digite seu e-mail acima e toque em Esqueci minha senha.");return}
