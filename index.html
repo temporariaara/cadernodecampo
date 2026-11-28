@@ -29,7 +29,7 @@ nav{display:flex;gap:6px;overflow-x:auto;border-bottom:3px solid var(--ink);marg
 nav button{font:700 16px/1 inherit;font-family:inherit;background:none;border:0;color:var(--mut);padding:12px 14px;cursor:pointer;white-space:nowrap;border-radius:8px 8px 0 0}
 nav button[aria-selected=true]{background:var(--ink);color:var(--bg)}
 label{display:block;font-size:14px;color:var(--mut);margin:10px 0 4px}
-input,select{font:inherit;color:var(--ink);background:var(--panel);border:1.5px solid var(--line);border-radius:8px;padding:11px 10px;width:100%;min-height:46px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--panel);border:1.5px solid var(--line);border-radius:8px;padding:11px 10px;width:100%;min-height:46px}
 :focus-visible{outline:3px solid var(--w);outline-offset:2px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .btn{font:700 16px/1 inherit;font-family:inherit;border:2px solid var(--ink);background:transparent;color:var(--ink);padding:13px 16px;border-radius:8px;cursor:pointer;margin-top:12px}
@@ -57,6 +57,10 @@ h2{font-size:17px;margin:24px 0 6px;padding-top:12px;border-top:2px solid var(--
 .link{background:none;border:0;padding:10px 0 0;color:var(--g);font:inherit;text-decoration:underline;cursor:pointer}
 #auth .btn+.btn{margin-left:8px}
 .acts{display:flex;flex-wrap:wrap;gap:8px}
+textarea{resize:vertical;min-height:78px}
+.ia-it{border:1.5px solid var(--line);border-radius:8px;padding:2px 12px 12px;margin:10px 0}
+.chk{display:flex;gap:10px;align-items:flex-start;color:var(--ink);font-size:15px;margin:12px 0 0}
+.chk input{width:22px;min-height:22px;height:22px;padding:0;flex-shrink:0;margin:1px 0 0}
 .hint{color:var(--mut);font-size:14px;margin:10px 0 0}
 .aviso{width:100%;text-align:left;border-color:var(--w);margin:0 0 12px}
 .bar{display:grid;grid-template-columns:78px 1fr auto;gap:10px;align-items:center;margin:8px 0;font-size:14px}
@@ -111,6 +115,17 @@ body.pr-rel #rel{display:block}
 <div><label for="nsf">Nova safra</label><input id="nsf" placeholder="Ex.: Milho 2026/27"></div></div>
 <button class="btn noprint" id="addsf" type="button">Criar safra</button>
 <div class="sum" id="sum"></div>
+<h2 class="noprint">Lançar por voz ou foto</h2>
+<div class="noprint" id="iabox">
+<p class="hint" id="planost"></p>
+<div class="acts"><button class="btn main" id="assinar" type="button" hidden>Assinar plano completo</button></div>
+<label for="iat">Fale ou escreva o gasto</label>
+<textarea id="iat" rows="2" maxlength="600" placeholder="Ex.: comprei 10 sacos de adubo por 2 mil reais no pix"></textarea>
+<div class="acts"><button class="btn" id="iamic" type="button" hidden>🎤 Falar</button><button class="btn" id="iafb" type="button">📷 Foto da nota</button><button class="btn main" id="iago" type="button">Interpretar</button></div>
+<input id="iaf" type="file" accept="image/*" hidden>
+<p class="hint" id="iafn">A leitura é feita por inteligência artificial e pode errar. Confira os valores antes de salvar.</p>
+<div id="iares"></div>
+</div>
 <h2 class="noprint">Novo lançamento</h2>
 <form id="fc"><div class="two"><div><label for="ct">Tipo</label><select id="ct"><option value="c">Custo (saída)</option><option value="r">Receita (entrada)</option></select></div>
 <div><label for="cd">Data</label><input id="cd" type="date"></div></div>
@@ -123,10 +138,16 @@ body.pr-rel #rel{display:block}
 </section>
 
 <section id="p-gado" hidden>
+<div id="auto" class="noprint">
+<h2>Lembretes automáticos no WhatsApp</h2>
+<p class="hint" id="autost"></p>
+<label for="zapn">Seu WhatsApp com DDD</label><input id="zapn" type="tel" inputmode="tel" autocomplete="tel" placeholder="(73) 99999-9999">
+<label class="chk" for="zapok"><input type="checkbox" id="zapok"><span>Autorizo o Caderno de Campo a enviar lembretes de vacina por WhatsApp para este número. Posso desativar quando quiser.</span></label>
+<div class="acts"><button class="btn main" id="zapsave" type="button">Ativar lembretes</button><button class="btn" id="zapoff" type="button" hidden>Desativar</button></div>
+</div>
 <div id="lemw" class="noprint" hidden>
 <h2>Vacinas para os próximos 30 dias</h2>
 <div id="lem"></div>
-<label for="zap">Seu WhatsApp com DDD</label><input id="zap" type="tel" inputmode="tel" autocomplete="tel" placeholder="(73) 99999-9999">
 <div class="acts"><button class="btn main" id="lzap" type="button">Lembrar no WhatsApp</button><button class="btn" id="lmail" type="button">Lembrar por e-mail</button><button class="btn" id="lics" type="button">Salvar no calendário</button></div>
 <p class="hint">WhatsApp e e-mail abrem uma mensagem pronta para você enviar. No calendário, o celular avisa sozinho na véspera e no dia da vacina.</p>
 </div>
@@ -222,7 +243,7 @@ L.forEach(function(x){if(x.d.slice(0,7)===m)tm+=+x.mm;if(x.d.slice(0,4)===y)ty+=
 $("#cs").innerHTML='<div><small>Neste mês</small><b>'+num(tm)+' mm</b></div><div><small>Neste ano</small><b>'+num(ty)+' mm</b></div><div><small>Registros</small><b>'+L.length+'</b></div>';
 $("#lr").innerHTML=L.map(function(x){return'<div class="it"><div><b>'+num(x.mm)+' mm</b><small>'+fd(x.d)+'</small></div>'+del(x.id,"chuva")+'</div>'}).join("")||'<p class="empty">Nenhuma chuva registrada.</p>'}
 function rAplic(){$("#la").innerHTML=S.aplic.slice().sort(byDate).map(function(x){return'<div class="it"><div><b>'+esc(x.p)+'</b>'+(x.o?" · "+esc(x.o):"")+'<small>'+fd(x.d)+(x.l?" · "+esc(x.l):"")+(x.x?" · "+esc(x.x):"")+'</small></div>'+del(x.id,"aplic")+'</div>'}).join("")||'<p class="empty">Nenhuma aplicação registrada.</p>'}
-function all(){rCustos();rGado();rChuva();rAplic();rResumo()}
+function all(){rCustos();rGado();rChuva();rAplic();rResumo();rAuto();rPlano()}
 function msg(e){var m=String(e&&e.message||"");
 if(/Invalid login/i.test(m))return"E-mail ou senha incorretos.";
 if(/not confirmed/i.test(m))return"Confirme seu e-mail pelo link que enviamos antes de entrar.";
@@ -243,7 +264,7 @@ var r=await fetch(API+"/rest/v1/"+p,{method:m,headers:{apikey:KEY,Authorization:
 if(r.status===401)throw new Error("sessao");if(!r.ok)throw new Error("api");return r.json()}
 function sair(){if(tok){try{fetch(API+"/auth/v1/logout",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+tok.access_token}})}catch(e){}}
 tok=null;try{localStorage.removeItem(TK)}catch(e){}
-S={sf:null,safras:[],custos:[],animais:[],an:null,chuva:[],aplic:[]};$("#app").hidden=true;$("#auth").hidden=false;$("#pw").value=""}
+S={sf:null,safras:[],custos:[],animais:[],an:null,chuva:[],aplic:[]};$("#app").hidden=true;$("#auth").hidden=false;$("#pw").value="";cfg=null;$("#zapn").value="";$("#iares").innerHTML="";$("#iat").value="";iaImg=null;ass=undefined}
 function fail(e){if(e&&e.message==="sessao"){sair();amsg("Sua sessão expirou. Entre de novo.")}else toast("Não foi possível salvar. Verifique a conexão.")}
 function run(fn,h){if(busy)return;busy=true;fn().catch(h||fail).then(function(){busy=false})}
 async function carregar(){var n=["safras","custos","animais","pesagens","vacinas","chuvas","aplicacoes"],R=await Promise.all(n.map(function(t){return api("GET",t+"?select=*")}));
@@ -254,6 +275,8 @@ pes:R[3].filter(function(p){return p.animal_id===a.id}).map(function(p){return{i
 vac:R[4].filter(function(v){return v.animal_id===a.id}).map(function(v){return{id:v.id,d:v.data,p:v.produto,px:v.proxima||""}})}});
 S.chuva=R[5].map(function(x){return{id:x.id,d:x.data,mm:x.mm}});
 S.aplic=R[6].map(function(x){return{id:x.id,d:x.data,p:x.produto,l:x.local,o:x.dose,x:x.obs}});
+try{var cf=await api("GET","lembretes_config?select=*");cfg=cf[0]||null}catch(e){cfg=null}
+try{var asn=await api("GET","assinaturas?select=*");ass=asn[0]||null}catch(e){ass=undefined}
 if(!S.safras.some(function(s){return s.id===S.sf}))S.sf=S.safras.length?S.safras[0].id:null;
 if(!S.animais.some(function(a){return a.id===S.an}))S.an=S.animais.length?S.animais[0].id:null}
 async function entrar(){await carregar();$("#auth").hidden=true;$("#app").hidden=false;$("#who").textContent=tok.email||"";all()}
@@ -363,9 +386,8 @@ h+='<h2>Chuva (últimos meses registrados)</h2>'+tbl(["Mês","Total"],ks.map(fun
 if(S.aplic.length)h+='<h2>Aplicações</h2>'+tbl(["Data","Produto","Local ou talhão","Dose"],S.aplic.slice().sort(byDate).map(function(x){return[fd(x.d),x.p||"",x.l||"",x.o||""]}));
 h+='<p class="fn">Documento gerado a partir dos registros feitos pelo próprio produtor no Caderno de Campo. Não substitui notas fiscais, laudos ou documentos oficiais.</p>';
 return h}
-try{$("#prod").value=localStorage.getItem("cadernocampo:produtor")||"";$("#zap").value=localStorage.getItem("cadernocampo:zap")||""}catch(e){}
+try{$("#prod").value=localStorage.getItem("cadernocampo:produtor")||""}catch(e){}
 $("#prod").addEventListener("input",function(){try{localStorage.setItem("cadernocampo:produtor",$("#prod").value)}catch(e){}});
-$("#zap").addEventListener("input",function(){try{localStorage.setItem("cadernocampo:zap",$("#zap").value)}catch(e){}});
 $("#pdf").addEventListener("click",function(){
 if(!S.safras.length&&!S.animais.length&&!S.chuva.length&&!S.aplic.length){toast("Ainda não há registros para o relatório.");return}
 $("#rel").innerHTML=relHTML();document.body.classList.add("pr-rel");
@@ -378,13 +400,105 @@ ws["!cols"]=s.rows[0].map(function(h,i){var w=String(h).length;s.rows.forEach(fu
 X.utils.book_append_sheet(wb,ws,s.n)});
 X.writeFile(wb,"caderno-de-campo-"+today+".xlsx");toast("Planilha baixada.")}).catch(function(){
 baixar("custos-"+today+".csv","text/csv;charset=utf-8",csv(sh[1].rows));toast("Não foi possível carregar o gerador de Excel. Baixamos os custos em CSV, que o Excel também abre.")})});
-$("#lzap").addEventListener("click",function(){var n=$("#zap").value.replace(/\D/g,"");
+$("#lzap").addEventListener("click",function(){var n=$("#zapn").value.replace(/\D/g,"");
 if(n&&n.length<10){toast("Digite o WhatsApp com DDD.");return}
 if(n&&n.length<=11)n="55"+n;
 window.open("https://wa.me/"+n+"?text="+encodeURIComponent(lembTxt()),"_blank","noopener")});
 $("#lmail").addEventListener("click",function(){location.href="mailto:"+encodeURIComponent(tok&&tok.email||"")+"?subject="+encodeURIComponent("Lembrete de vacinas – Caderno de Campo")+"&body="+encodeURIComponent(lembTxt())});
 $("#lics").addEventListener("click",ics);
 /* ---- fim ---- */
+/* ---- Lembretes automaticos por WhatsApp ---- */
+var cfg=null;
+function foneOK(v){var n=String(v).replace(/\D/g,"");if(n.length>=12&&n.indexOf("55")===0)return n;if(n.length===10||n.length===11)return"55"+n;return""}
+function rAuto(){var on=!!(cfg&&cfg.ativo);
+if(cfg&&document.activeElement!==$("#zapn"))$("#zapn").value=String(cfg.whatsapp||"").replace(/^55/,"");
+$("#zapok").checked=on;$("#zapoff").hidden=!on;
+$("#zapsave").textContent=on?"Salvar número":"Ativar lembretes";
+$("#autost").textContent=on?"Ativo. Você recebe um aviso 7 dias antes, 1 dia antes, no dia e 3 dias depois de cada dose.":"Desativado. Informe seu número e autorize para receber os avisos sozinhos, sem abrir o site."}
+$("#zapsave").addEventListener("click",function(){var f=foneOK($("#zapn").value);
+if(!f){toast("Digite o WhatsApp com DDD.");return}
+if(!$("#zapok").checked){toast("Marque a autorização para receber os lembretes.");return}
+run(async function(){var d={whatsapp:f,ativo:true,consentimento_em:new Date().toISOString()};
+if(cfg){var r=await api("PATCH","lembretes_config?user_id=eq."+encodeURIComponent(cfg.user_id),d);cfg=r[0]||cfg}
+else{var r2=await api("POST","lembretes_config",d);cfg=r2[0]||null}
+rAuto();toast("Lembretes ativados.")})});
+$("#zapoff").addEventListener("click",function(){if(!cfg)return;
+run(async function(){var r=await api("PATCH","lembretes_config?user_id=eq."+encodeURIComponent(cfg.user_id),{ativo:false});cfg=r[0]||cfg;rAuto();toast("Lembretes desativados.")})});
+/* ---- fim lembretes WhatsApp ---- */
+/* ---- Lancamento por voz ou foto (IA) ---- */
+var CATS=["Semente","Adubo","Defensivo","Mão de obra","Combustível","Ração","Veterinário","Venda","Outros"],iaImg=null,iaRc=null,IADICA="A leitura é feita por inteligência artificial e pode errar. Confira os valores antes de salvar.";
+function opts(L,v){return L.map(function(o){return'<option value="'+esc(o[0])+'"'+(o[0]===v?" selected":"")+'>'+esc(o[1])+'</option>'}).join("")}
+function iaLinha(x){return'<div class="ia-it"><div class="two"><div><label>Tipo<select class="ia-t">'+opts([["c","Custo (saída)"],["r","Receita (entrada)"]],x.tipo)+'</select></label></div><div><label>Data<input class="ia-d" type="date" value="'+esc(x.data||today)+'"></label></div></div>'+
+'<div class="two"><div><label>Categoria<select class="ia-c">'+opts(CATS.map(function(c){return[c,c]}),x.categoria)+'</select></label></div><div><label>Valor (R$)<input class="ia-v" type="number" min="0" step="any" inputmode="decimal" value="'+(x.valor>0?esc(x.valor):"")+'"></label></div></div>'+
+'<label>Descrição<input class="ia-x" maxlength="120" value="'+esc(x.descricao||"")+'"></label></div>'}
+function iaMostra(d){var L=d.lancamentos||[];
+if(!L.length){$("#iares").innerHTML='<p class="empty">'+esc(d.aviso||"Não encontrei nenhum gasto ou venda. Tente dizer o que foi comprado e quanto custou.")+'</p>';return}
+$("#iares").innerHTML='<h2>Confira antes de salvar</h2>'+(d.aviso?'<p class="hint">'+esc(d.aviso)+'</p>':"")+L.map(iaLinha).join("")+
+'<div class="acts"><button class="btn main" id="iasave" type="button">Salvar '+(L.length>1?L.length+" lançamentos":"lançamento")+'</button><button class="btn" id="iacan" type="button">Descartar</button></div>'}
+function iaErr(x){if(x&&x.message==="sessao"){fail(x);return}
+if(x&&x.cod==="plano")$("#assinar").hidden=false;
+var t=x&&x.pt?x.message:"Não foi possível interpretar agora. Tente de novo ou use o lançamento manual abaixo.";
+$("#iares").innerHTML='<p class="empty">'+esc(t)+'</p>'}
+async function chamaIA(corpo){await ensure();
+var r=await fetch(API+"/functions/v1/interpretar",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+tok.access_token,"Content-Type":"application/json"},body:JSON.stringify(corpo)});
+var d=await r.json().catch(function(){return{}});
+if(!r.ok){var e=new Error(d.erro||"ia");e.pt=!!d.erro;e.cod=d.codigo;throw e}
+return d}
+function reduzir(file){return new Promise(function(ok,no){var u=URL.createObjectURL(file),im=new Image();
+im.onload=function(){var m=1600,k=Math.min(1,m/Math.max(im.naturalWidth,im.naturalHeight)),c=document.createElement("canvas");
+c.width=Math.round(im.naturalWidth*k);c.height=Math.round(im.naturalHeight*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+URL.revokeObjectURL(u);ok(c.toDataURL("image/jpeg",0.82).split(",")[1])};
+im.onerror=function(){URL.revokeObjectURL(u);no(new Error("img"))};im.src=u})}
+var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(SR)$("#iamic").hidden=false;
+$("#iamic").addEventListener("click",function(){
+if(iaRc){iaRc.stop();return}
+var rc=new SR(),base=$("#iat").value.trim();rc.lang="pt-BR";rc.interimResults=true;rc.continuous=false;iaRc=rc;
+rc.onresult=function(e){var t="";for(var i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;$("#iat").value=(base?base+" ":"")+t};
+rc.onerror=function(e){toast(e.error==="not-allowed"?"Permita o uso do microfone no navegador.":e.error==="no-speech"?"Não ouvi nada. Tente de novo.":"Voz indisponível aqui. Use o microfone do teclado do celular.")};
+rc.onend=function(){iaRc=null;$("#iamic").textContent="🎤 Falar"};
+try{rc.start();$("#iamic").textContent="⏹ Parar"}catch(e){iaRc=null}});
+$("#iafb").addEventListener("click",function(){$("#iaf").click()});
+$("#iaf").addEventListener("change",function(){var f=this.files&&this.files[0];this.value="";if(!f)return;
+if(!/^image\//.test(f.type)){toast("Escolha uma foto.");return}
+toast("Preparando a foto…");
+reduzir(f).then(function(b){iaImg=b;$("#iafn").textContent="📷 Foto pronta. Toque em Interpretar. Se quiser, escreva algo a mais acima."}).catch(function(){iaImg=null;toast("Não consegui abrir esta foto.")})});
+$("#iago").addEventListener("click",function(){var t=$("#iat").value.trim();
+if(!planoAtivo()){$("#iares").innerHTML='<p class="empty">A leitura por IA é exclusiva do plano completo. Toque em "Assinar plano completo" para usar. O lançamento manual continua grátis.</p>';return}
+if(!t&&!iaImg){toast("Fale, escreva ou envie uma foto.");return}
+if(!S.sf){toast("Crie uma safra primeiro.");return}
+var b=$("#iago");b.disabled=true;$("#iares").innerHTML='<p class="empty">Lendo… pode levar alguns segundos.</p>';
+run(async function(){try{var d=await chamaIA({texto:t,imagem:iaImg});iaImg=null;$("#iafn").textContent=IADICA;iaMostra(d)}finally{b.disabled=false}},function(x){b.disabled=false;iaErr(x)})});
+$("#iares").addEventListener("click",function(e){var id=e.target.id;
+if(id==="iacan"){$("#iares").innerHTML="";return}
+if(id!=="iasave")return;
+if(!S.sf){toast("Crie uma safra primeiro.");return}
+var B=[],ok=true;
+document.querySelectorAll("#iares .ia-it").forEach(function(r){var v=+r.querySelector(".ia-v").value;if(!(v>0))ok=false;
+B.push({safra_id:S.sf,tipo:r.querySelector(".ia-t").value,data:r.querySelector(".ia-d").value||today,categoria:r.querySelector(".ia-c").value,descricao:r.querySelector(".ia-x").value.trim(),valor:v})});
+if(!ok){toast("Confira o valor de cada lançamento.");return}
+run(async function(){var R=await api("POST","custos",B);
+R.forEach(function(r){S.custos.push({id:r.id,sf:r.safra_id,t:r.tipo,d:r.data,cat:r.categoria,v:r.valor,x:r.descricao})});
+$("#iares").innerHTML="";$("#iat").value="";rCustos();rResumo();toast(R.length>1?R.length+" lançamentos salvos.":"Lançamento salvo.")})});
+/* ---- Plano completo (libera a leitura por IA) ---- */
+/* PREENCHA: link de pagamento (Pix/cartão) e/ou seu WhatsApp (só números, com 55 e DDD). */
+var ASSINAR_URL="",SUPORTE_WHATS="";
+var ass;
+function planoAtivo(){return ass===undefined?true:!!(ass&&ass.origem!=="teste"&&Date.parse(ass.valido_ate)>Date.now())}
+function rPlano(){var el=$("#planost"),b=$("#iago");
+if(ass===undefined){el.textContent="";b.textContent="Interpretar";$("#assinar").hidden=true;return}
+var ok=planoAtivo(),d=ass?String(ass.valido_ate).slice(0,10):"",n=ass?days(today,d):0;
+if(ok)el.textContent="Plano completo até "+fd(d)+(n<=5?(n<=0?" (vence hoje)":" (faltam "+n+(n===1?" dia":" dias")+")"):"")+".";
+else if(ass&&ass.origem==="teste")el.textContent="A leitura por voz e foto com IA é exclusiva do plano completo. O lançamento manual continua grátis.";
+else if(ass)el.textContent="Seu plano venceu em "+fd(d)+". A leitura por voz e foto com IA é exclusiva do plano completo.";
+else el.textContent="A leitura por voz e foto com IA é exclusiva do plano completo. O lançamento manual continua grátis.";
+b.textContent=ok?"Interpretar":"🔒 Interpretar (plano completo)";$("#assinar").hidden=ok}
+$("#assinar").addEventListener("click",function(){
+if(ASSINAR_URL){window.open(ASSINAR_URL,"_blank","noopener");return}
+if(SUPORTE_WHATS){window.open("https://wa.me/"+SUPORTE_WHATS+"?text="+encodeURIComponent("Olá! Quero assinar o plano completo do Caderno de Campo. Meu e-mail de cadastro: "+(tok&&tok.email||"")),"_blank","noopener");return}
+toast("Em breve: entre em contato para assinar.")});
+/* ---- fim plano ---- */
+/* ---- fim IA ---- */
 var rec=null;
 function jwtEmail(t){try{return JSON.parse(atob(t.split(".")[1].replace(/-/g,"+").replace(/_/g,"/"))).email||""}catch(e){return""}}
 $("#forgot").addEventListener("click",function(){var em=$("#em").value.trim();amsg("");if(!em){amsg("Digite seu e-mail acima e toque em Esqueci minha senha.");return}
